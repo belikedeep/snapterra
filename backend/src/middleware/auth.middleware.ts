@@ -1,18 +1,12 @@
 import type { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET;
-
-if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET is not defined");
-}
+import { verifyToken } from "../utils/auth";
 
 export interface AuthRequest extends Request {
   userId?: number;
 }
 
 export const authProtect = (
-  req: AuthRequest,
+  req: AuthRequest, 
   res: Response,
   next: NextFunction
 ) => {
@@ -22,11 +16,12 @@ export const authProtect = (
     return res.status(401).json({ message: "No token, authorization denied" });
   }
 
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET as string) as { id: number };
-    req.userId = decoded.id;
-    next();
-  } catch (error) {
-    res.status(401).json({ message: "Token is not valid" });
+  const userId = verifyToken(token);
+  
+  if (!userId) {
+    return res.status(401).json({ message: "Token is not valid" });
   }
+
+  req.userId = userId;
+  next();
 };
