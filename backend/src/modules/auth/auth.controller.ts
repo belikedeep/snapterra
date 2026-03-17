@@ -33,3 +33,7 @@ export const login = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Login failed" });
   }
 };
+
+export const getMe = (req: Request & { userId?: number }, res: Response) => {
+  res.json({ userId: req.userId });
+};
