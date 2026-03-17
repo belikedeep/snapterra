@@ -9,6 +9,7 @@ import {
   FileUp,
   Loader2,
   Trash2,
+  X,
 } from "lucide-react";
 import { useUploadThing } from "../utils/uploadthing";
 import api from "../api/axios";
@@ -30,6 +31,7 @@ const Screenshots = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [screenshots, setScreenshots] = useState<Screenshot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const fetchScreenshots = async () => {
     try {
@@ -147,7 +149,7 @@ const Screenshots = () => {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Enter title..."
-                  className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-md focus:border-black outline-none"
+                  className="w-full px-3 py-2 text-sm border rounded-md"
                 />
               </div>
 
@@ -160,7 +162,7 @@ const Screenshots = () => {
                   value={tags}
                   onChange={(e) => setTags(e.target.value)}
                   placeholder="Seperate with commas..."
-                  className="w-full px-3 py-2 text-sm border border-zinc-200 rounded-md focus:border-black outline-none"
+                  className="w-full px-3 py-2 text-sm border rounded-md"
                 />
               </div>
 
@@ -206,39 +208,44 @@ const Screenshots = () => {
               <Loader2 size={32} className="animate-spin text-zinc-200" />
             </div>
           ) : screenshots.length > 0 ? (
-            <div className="divide-y divide-zinc-100">
+            <div className="divide-y divide-black">
               {screenshots.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center gap-6 px-8 py-4 hover:bg-zinc-50 transition-colors group"
+                  className="flex items-start justify-between gap-6 px-8 py-4"
                 >
-                  <div className="w-24 h-16 bg-zinc-100 rounded border border-zinc-200 overflow-hidden shrink-0">
-                    <img
-                      src={item.filename}
-                      alt={item.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+                  <div className="flex flex-col gap-4 flex-1">
+                    <div
+                      className="w-24 h-16 cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => setPreviewImage(item.filename)}
+                    >
+                      <img
+                        src={item.filename}
+                        alt={item.title}
+                        className="w-full h-full object-cover rounded border border-zinc-200"
+                      />
+                    </div>
 
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-medium text-black truncate">
-                      {item.title}
-                    </h3>
-                    <div className="flex flex-wrap gap-1.5 mt-1.5">
-                      {item.tags ? (
-                        item.tags.split(",").map((tag, idx) => (
-                          <span
-                            key={idx}
-                            className="bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded-full text-[10px] font-medium"
-                          >
-                            {tag.trim()}
+                    <div className="max-w-4xl px-2">
+                      <h3 className="text-xl font-semibold text-black">
+                        {item.title}
+                      </h3>
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {item.tags ? (
+                          item.tags.split(",").map((tag, idx) => (
+                            <span
+                              key={idx}
+                              className="bg-zinc-100 text-zinc-700 px-3 py-1 rounded-md text-xs font-medium border border-zinc-200"
+                            >
+                              {tag.trim()}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-xs text-zinc-400 italic">
+                            No tags
                           </span>
-                        ))
-                      ) : (
-                        <span className="text-[10px] text-zinc-400 italic">
-                          No tags
-                        </span>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -259,6 +266,27 @@ const Screenshots = () => {
           )}
         </section>
       </main>
+
+      {/* Image Modal */}
+      {previewImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm"
+          onClick={() => setPreviewImage(null)}
+        >
+          <button
+            className="absolute top-6 right-6 p-2 text-white hover:cursor-pointer"
+            onClick={() => setPreviewImage(null)}
+          >
+            <X size={32} />
+          </button>
+          <img
+            src={previewImage}
+            alt="Preview"
+            className="max-w-full max-h-full object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 };
