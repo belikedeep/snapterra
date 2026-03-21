@@ -1,28 +1,34 @@
-# Snapterra
+# Snapterra 🚀
 
-Snapterra is a screenshot management tool
+Snapterra is a unified dashboard for managing your visual inspiration and web resources. It combines a high-speed screenshot gallery with a clean link-saving system, all tied together by a shared tagging ecosystem.
 
-## Features
+## ✨ Key Features
 
-- **JWT Authentication**: Secure login using credentials configured via environment variables .
-- **Screenshot Upload**: Integration with **UploadThing**.
-- **Library Management**: A clean list view of all the screenshots.
-- **Normalized Tagging**: Screenshots with a many-to-many tagging.
-- **Instant Preview**: View high-resolution screenshots in a modal overlay.
-- **Direct Delete**: Manage the collection with instant deletion.
+- **📸 Visuals & Links**: Manage both image uploads (via UploadThing) and website URLs.
+- **🏷️ Normalized Tags**: Powerful many-to-many tagging shared across your entire collection.
+- **🎨 Modular Sidebar**: Effortless navigation and content creation within a single, dynamic component.
+- **📱 Responsive Layout**: Nested routing architecture ensures a stable and professional UI.
+- **👁️ Instant Preview**: View high-resolution screenshots instantly in a premium modal viewer.
 
-## ⚙️ Setup
+## 🛠️ Technology Stack
 
-### Backend
+| Frontend | Backend | Hosting/Storage |
+| :--- | :--- | :--- |
+| React (Vite) | Express & Bun | UploadThing (Images) |
+| TailwindCSS | PostgreSQL | JWT (Auth) |
+| React Router | Bcrypt | Lucide Icon Library |
 
-1. Navigate to `backend/`
-2. Install dependencies: `bun install`
-3. Create a `.env` file based on `.env.example`:
-4. Start the server: `bun dev`
+## ⚙️ Setup & Installation
 
-### Frontend
+### Backend Setup
+1.  Navigate to `backend/` and install dependencies: `bun install`.
+2.  Set up your `.env` file with `DATABASE_URL`, `UPLOADTHING_TOKEN`, `JWT_SECRET`, and `ADMIN` credentials.
+3.  Start the server: `bun dev`.
 
-1. Navigate to `frontend/`
-2. Install dependencies: `bun install`
-3. Create a `.env` file based on `.env.example`:
-4. Start the development server: `bun dev`
+### Frontend Setup
+1.  Navigate to `frontend/` and install dependencies: `bun install`.
+2.  Start the development server: `bun dev`.
+3.  Visit `http://localhost:5173` to start managing your resources!
+
+---
+*Organize your inspiration with Snapterra.*
