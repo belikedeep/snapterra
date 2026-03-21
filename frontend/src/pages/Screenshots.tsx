@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
+import { useOutletContext } from "react-router";
 import { Image, Loader2, Trash2, X } from "lucide-react";
 import api from "../api/axios";
 import ImageModal from "../components/ImageModal";
-import Sidebar from "../components/Sidebar";
+import type { LayoutContextType } from "../components/MainLayout";
 
 interface Screenshot {
   id: number;
@@ -13,6 +14,7 @@ interface Screenshot {
 }
 
 const Screenshots = () => {
+  const { refreshTrigger } = useOutletContext<LayoutContextType>();
   const [screenshots, setScreenshots] = useState<Screenshot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -30,7 +32,7 @@ const Screenshots = () => {
 
   useEffect(() => {
     fetchScreenshots();
-  }, []);
+  }, [refreshTrigger]);
 
   const onDelete = async (id: number) => {
     if (!confirm("Delete this screenshot?")) return;
@@ -52,97 +54,92 @@ const Screenshots = () => {
   };
 
   return (
-    <div className="flex h-screen">
-      <Sidebar onSuccess={fetchScreenshots} />
+    <>
+      <header className="h-16 border-b border-zinc-200 flex items-center justify-between px-8">
+        <h2 className="font-medium text-black">All Screenshots</h2>
+        <div className="text-xs italic text-zinc-500">
+          Showing {screenshots.length} results
+        </div>
+      </header>
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col bg-white overflow-hidden">
-        <header className="h-16 border-b border-zinc-200 flex items-center justify-between px-8">
-          <h2 className="font-medium text-black">All Screenshots</h2>
-          <div className="text-xs italic text-zinc-500">
-            Showing {screenshots.length} results
+      <section className="flex-1 overflow-y-auto">
+        {isLoading ? (
+          <div className="flex justify-center py-20">
+            <Loader2 size={32} className="animate-spin text-zinc-200" />
           </div>
-        </header>
-
-        <section className="flex-1 overflow-y-auto">
-          {isLoading ? (
-            <div className="flex justify-center py-20">
-              <Loader2 size={32} className="animate-spin text-zinc-200" />
-            </div>
-          ) : screenshots.length > 0 ? (
-            <div className="divide-y divide-black">
-              {screenshots.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-start justify-between gap-6 px-8 py-4"
-                >
-                  <div className="flex flex-col gap-4 flex-1">
-                    <div
-                      className="w-24 h-16 cursor-pointer hover:opacity-80 transition-opacity"
-                      onClick={() => setPreviewImage(item.filename)}
-                    >
-                      <img
-                        src={item.filename}
-                        alt={item.title}
-                        className="w-full h-full object-cover rounded border border-zinc-200"
-                      />
-                    </div>
-
-                    <div className="max-w-4xl px-2">
-                      <h3 className="text-xl font-semibold text-black">
-                        {item.title}
-                      </h3>
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        {item.tags ? (
-                          item.tags.split(",").map((tag, idx) => (
-                            <span
-                              key={idx}
-                              className="flex items-center gap-1.5 bg-zinc-100 text-zinc-700 px-3 py-1 rounded-md text-xs font-medium border border-zinc-200"
-                            >
-                              {tag.trim()}
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onRemoveTag(item.id, tag.trim());
-                                }}
-                                className="p-0.5 rounded-full hover:bg-zinc-200 text-zinc-400 hover:text-red-500 transition-colors cursor-pointer"
-                              >
-                                <X size={12} />
-                              </button>
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-xs text-zinc-400 italic">
-                            No tags
-                          </span>
-                        )}
-                      </div>
-                    </div>
+        ) : screenshots.length > 0 ? (
+          <div className="divide-y divide-zinc-100">
+            {screenshots.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-start justify-between gap-6 px-8 py-4 hover:bg-zinc-50 transition-colors"
+              >
+                <div className="flex flex-col gap-4 flex-1">
+                  <div
+                    className="w-24 h-16 cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => setPreviewImage(item.filename)}
+                  >
+                    <img
+                      src={item.filename}
+                      alt={item.title}
+                      className="w-full h-full object-cover rounded border border-zinc-200"
+                    />
                   </div>
 
-                  <button
-                    onClick={() => onDelete(item.id)}
-                    className="p-2 text-red-500 hover:bg-red-50 rounded-md hover:cursor-pointer"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  <div className="max-w-4xl">
+                    <h3 className="text-xl font-semibold text-black leading-tight">
+                      {item.title}
+                    </h3>
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {item.tags ? (
+                        item.tags.split(",").map((tag, idx) => (
+                          <span
+                            key={idx}
+                            className="flex items-center gap-1.5 bg-zinc-100 text-zinc-700 px-3 py-1 rounded-md text-xs font-medium border border-zinc-200"
+                          >
+                            {tag.trim()}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onRemoveTag(item.id, tag.trim());
+                              }}
+                              className="p-0.5 rounded-full hover:bg-zinc-200 text-zinc-400 hover:text-red-500 transition-colors"
+                            >
+                              <X size={12} />
+                            </button>
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-xs text-zinc-400 italic">
+                          No tags
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="h-full flex flex-col items-center justify-center text-zinc-400">
-              <Image size={40} className="mb-4 text-zinc-100" />
-              <p className="text-sm font-medium">Your library is empty</p>
-            </div>
-          )}
-        </section>
-      </main>
+
+                <button
+                  onClick={() => onDelete(item.id)}
+                  className="p-2 text-red-500 hover:bg-red-50 rounded-md transition-colors"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="h-full flex flex-col items-center justify-center text-zinc-400">
+            <Image size={40} className="mb-4 text-zinc-100" />
+            <p className="text-sm font-medium">Your library is empty</p>
+          </div>
+        )}
+      </section>
 
       <ImageModal
         imageUrl={previewImage}
         onClose={() => setPreviewImage(null)}
       />
-    </div>
+    </>
   );
 };
 
