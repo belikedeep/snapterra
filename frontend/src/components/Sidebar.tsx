@@ -11,6 +11,8 @@ import {
   Globe,
   LayoutGrid,
   Link as LinkIcon,
+  CheckSquare,
+  FileText,
 } from "lucide-react";
 import { useUploadThing } from "../utils/uploadthing";
 import api from "../api/axios";
@@ -24,12 +26,13 @@ const Sidebar = ({ onSuccess }: SidebarProps) => {
   const location = useLocation();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [activeTab, setActiveTab] = useState<"screenshot" | "link">("screenshot");
+  const [activeTab, setActiveTab] = useState<"screenshot" | "link" | "task">("screenshot");
   const [title, setTitle] = useState("");
   const [tags, setTags] = useState("");
   const [url, setUrl] = useState("");
+  const [description, setDescription] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isSavingLink, setIsSavingLink] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const { startUpload, isUploading } = useUploadThing("screenshotUploader", {
     onClientUploadComplete: async (res: any) => {
@@ -58,6 +61,7 @@ const Sidebar = ({ onSuccess }: SidebarProps) => {
     setTitle("");
     setTags("");
     setUrl("");
+    setDescription("");
   };
 
   const handleLogout = () => {
@@ -76,9 +80,9 @@ const Sidebar = ({ onSuccess }: SidebarProps) => {
     if (activeTab === "screenshot") {
       if (!selectedFile) return;
       await startUpload([selectedFile], { title, tags });
-    } else {
+    } else if (activeTab === "link") {
       if (!url) return;
-      setIsSavingLink(true);
+      setIsSaving(true);
       try {
         await api.post("/links", { title, url, tags });
         resetForm();
@@ -86,7 +90,19 @@ const Sidebar = ({ onSuccess }: SidebarProps) => {
       } catch (err) {
         alert("Failed to save link");
       } finally {
-        setIsSavingLink(false);
+        setIsSaving(false);
+      }
+    } else {
+      if (!title) return;
+      setIsSaving(true);
+      try {
+        await api.post("/tasks", { title, description });
+        resetForm();
+        onSuccess();
+      } catch (err) {
+        alert("Failed to save task");
+      } finally {
+        setIsSaving(false);
       }
     }
   };
@@ -125,6 +141,17 @@ const Sidebar = ({ onSuccess }: SidebarProps) => {
             <LinkIcon size={18} />
             Links
           </Link>
+          <Link
+            to="/tasks"
+            className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+              location.pathname === "/tasks"
+                ? "bg-black text-white"
+                : "text-zinc-600 hover:bg-zinc-100 hover:text-black"
+            }`}
+          >
+            <CheckSquare size={18} />
+            Tasks
+          </Link>
         </nav>
 
         <div className="p-6 space-y-8 overflow-y-auto border-t">
@@ -153,10 +180,21 @@ const Sidebar = ({ onSuccess }: SidebarProps) => {
                 <LinkIcon size={14} />
                 Link
               </button>
+              <button
+                onClick={() => setActiveTab("task")}
+                className={`flex-1 flex items-center justify-center gap-2 py-1.5 text-xs font-medium rounded-md transition-all ${
+                  activeTab === "task"
+                    ? "bg-white text-black shadow-sm"
+                    : "text-zinc-500 hover:text-zinc-700"
+                }`}
+              >
+                <CheckSquare size={14} />
+                Task
+              </button>
             </div>
 
             <div className="space-y-4">
-              {activeTab === "screenshot" ? (
+              {activeTab === "screenshot" && (
                 <div className="space-y-1">
                   <label className="text-sm font-medium flex items-center gap-2">
                     <FileUp size={14} /> Image File
@@ -178,7 +216,9 @@ const Sidebar = ({ onSuccess }: SidebarProps) => {
                     />
                   </div>
                 </div>
-              ) : (
+              )}
+
+              {activeTab === "link" && (
                 <div className="space-y-1">
                   <label className="text-sm font-medium flex items-center gap-2">
                     <Globe size={14} /> Website URL
@@ -193,6 +233,21 @@ const Sidebar = ({ onSuccess }: SidebarProps) => {
                 </div>
               )}
 
+              {activeTab === "task" && (
+                <div className="space-y-1">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <FileText size={14} /> Description
+                  </label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Task details..."
+                    rows={3}
+                    className="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-black resize-none"
+                  />
+                </div>
+              )}
+
               <div className="space-y-1">
                 <label className="text-sm font-medium flex items-center gap-2">
                   <Type size={14} /> Title
@@ -201,35 +256,37 @@ const Sidebar = ({ onSuccess }: SidebarProps) => {
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Enter title..."
+                  placeholder={activeTab === "task" ? "Task title..." : "Enter title..."}
                   className="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-black"
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <Tag size={14} /> Tags
-                </label>
-                <input
-                  type="text"
-                  value={tags}
-                  onChange={(e) => setTags(e.target.value)}
-                  placeholder="coding, design, news..."
-                  className="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-black"
-                />
-              </div>
+              {activeTab !== "task" && (
+                <div className="space-y-1">
+                  <label className="text-sm font-medium flex items-center gap-2">
+                    <Tag size={14} /> Tags
+                  </label>
+                  <input
+                    type="text"
+                    value={tags}
+                    onChange={(e) => setTags(e.target.value)}
+                    placeholder="coding, design, news..."
+                    className="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-black"
+                  />
+                </div>
+              )}
 
               <button
                 onClick={onSave}
-                disabled={isUploading || isSavingLink || (activeTab === "screenshot" ? !selectedFile : !url)}
+                disabled={isUploading || isSaving || (activeTab === "screenshot" ? !selectedFile : activeTab === "link" ? !url : !title)}
                 className="w-full mt-2 flex items-center justify-center gap-2 py-2.5 bg-black text-white text-sm font-medium rounded-md hover:bg-zinc-800 disabled:bg-zinc-300 disabled:cursor-not-allowed transition-colors"
               >
-                {isUploading || isSavingLink ? (
+                {isUploading || isSaving ? (
                   <Loader2 size={16} className="animate-spin" />
                 ) : (
                   <Plus size={16} />
                 )}
-                {activeTab === "screenshot" ? "Save Screenshot" : "Save Link"}
+                {activeTab === "screenshot" ? "Save Screenshot" : activeTab === "link" ? "Save Link" : "Create Task"}
               </button>
             </div>
           </div>
@@ -250,4 +307,3 @@ const Sidebar = ({ onSuccess }: SidebarProps) => {
 };
 
 export default Sidebar;
-

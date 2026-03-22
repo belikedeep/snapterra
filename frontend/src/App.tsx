@@ -2,6 +2,7 @@ import { createBrowserRouter, RouterProvider, Navigate } from "react-router";
 import Login from "./pages/Login";
 import Screenshots from "./pages/Screenshots";
 import Links from "./pages/Links";
+import Tasks from "./pages/Tasks";
 import MainLayout from "./components/MainLayout";
 
 const router = createBrowserRouter([
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
       {
         path: "links",
         element: <Links />,
+      },
+      {
+        path: "tasks",
+        element: <Tasks />,
       },
       {
         index: true,
