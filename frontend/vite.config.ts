@@ -14,7 +14,8 @@ export default defineConfig({
       manifest: {
         name: "Snapterra",
         short_name: "Snapterra",
-        description: "A professional screenshot and task management application.",
+        description:
+          "A professional screenshot and task management application.",
         theme_color: "#0f172a", // slate-900 equivalent
         background_color: "#0f172a",
         display: "standalone",
@@ -37,7 +38,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "http://localhost:5000",
+        target: "http://localhost:5001",
         changeOrigin: true,
       },
     },
