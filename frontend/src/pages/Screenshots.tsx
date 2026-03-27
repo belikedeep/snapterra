@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useOutletContext } from "react-router";
 import { Image, Loader2, Trash2, X } from "lucide-react";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import type { InfiniteData, QueryKey } from "@tanstack/react-query";
 import api from "../api/axios";
 import ImageModal from "../components/ImageModal";
 import type { LayoutContextType } from "../components/MainLayout";
@@ -15,31 +17,65 @@ interface Screenshot {
 
 const Screenshots = () => {
   const { refreshTrigger } = useOutletContext<LayoutContextType>();
-  const [screenshots, setScreenshots] = useState<Screenshot[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const observerTarget = useRef<HTMLDivElement>(null);
 
-  const fetchScreenshots = async () => {
-    try {
-      const { data } = await api.get("/screenshots");
-      setScreenshots(data);
-    } catch (err) {
-      console.error("Failed to fetch:", err);
-    } finally {
-      setIsLoading(false);
-    }
+  const fetchScreenshotsPage = async ({ pageParam }: { pageParam: unknown }): Promise<Screenshot[]> => {
+    const page = pageParam as number;
+    const { data } = await api.get(`/screenshots?page=${page}&limit=20`);
+    return data;
   };
 
+  const {
+    data,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    refetch,
+  } = useInfiniteQuery<Screenshot[], Error, InfiniteData<Screenshot[]>, QueryKey, number>({
+    queryKey: ["screenshots"],
+    queryFn: fetchScreenshotsPage,
+    getNextPageParam: (lastPage, allPages) => {
+      return lastPage.length === 20 ? allPages.length + 1 : undefined;
+    },
+    initialPageParam: 1,
+  });
+
+  const handleObserver = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      const [target] = entries;
+      if (target.isIntersecting && hasNextPage && !isFetchingNextPage) {
+        fetchNextPage();
+      }
+    },
+    [fetchNextPage, hasNextPage, isFetchingNextPage]
+  );
+
   useEffect(() => {
-    fetchScreenshots();
-  }, [refreshTrigger]);
+    const element = observerTarget.current;
+    if (!element) return;
+
+    const observer = new IntersectionObserver(handleObserver, {
+      threshold: 0.1,
+    });
+
+    observer.observe(element);
+    return () => observer.unobserve(element);
+  }, [handleObserver]);
+
+  useEffect(() => {
+    refetch();
+  }, [refreshTrigger, refetch]);
 
   const onDelete = async (id: number) => {
     if (!confirm("Delete this screenshot?")) return;
     try {
       await api.delete(`/screenshots/${id}`);
-      fetchScreenshots();
-    } catch (err) {
+      queryClient.invalidateQueries({ queryKey: ["screenshots"] });
+    } catch {
       alert("Delete failed");
     }
   };
@@ -47,11 +83,13 @@ const Screenshots = () => {
   const onRemoveTag = async (screenshotId: number, tagName: string) => {
     try {
       await api.delete(`/screenshots/${screenshotId}/tags/${tagName}`);
-      fetchScreenshots();
-    } catch (err) {
+      queryClient.invalidateQueries({ queryKey: ["screenshots"] });
+    } catch {
       alert("Failed to remove tag");
     }
   };
+
+  const screenshots = data?.pages.flat() || [];
 
   return (
     <>
@@ -67,9 +105,13 @@ const Screenshots = () => {
           <div className="flex justify-center py-20">
             <Loader2 size={32} className="animate-spin text-zinc-200" />
           </div>
+        ) : error ? (
+          <div className="p-8 text-center text-red-500">
+            Failed to load screenshots.
+          </div>
         ) : screenshots.length > 0 ? (
           <div className="divide-y divide-zinc-100">
-            {screenshots.map((item) => (
+            {screenshots.map((item: Screenshot) => (
               <div
                 key={item.id}
                 className="flex flex-col sm:flex-row items-start justify-between gap-4 px-4 lg:px-8 py-6 hover:bg-zinc-50 transition-colors"
@@ -92,7 +134,7 @@ const Screenshots = () => {
                     </h3>
                     <div className="flex flex-wrap gap-2 mt-3">
                       {item.tags ? (
-                        item.tags.split(",").map((tag, idx) => (
+                        item.tags.split(",").map((tag: string, idx: number) => (
                           <span
                             key={idx}
                             className="flex items-center gap-1.5 bg-zinc-100 text-zinc-700 px-3 py-1 rounded-md text-xs font-medium border border-zinc-200"
@@ -128,6 +170,13 @@ const Screenshots = () => {
                 </div>
               </div>
             ))}
+            
+            {/* Infinite Scroll Trigger */}
+            <div ref={observerTarget} className="h-10 flex justify-center items-center">
+              {isFetchingNextPage && (
+                <Loader2 size={24} className="animate-spin text-zinc-300" />
+              )}
+            </div>
           </div>
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-zinc-400 p-8 text-center">

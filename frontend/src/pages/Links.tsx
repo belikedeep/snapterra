@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useOutletContext } from "react-router";
 import {
   Link as LinkIcon,
@@ -8,6 +8,8 @@ import {
   Globe,
   ExternalLink,
 } from "lucide-react";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import type { InfiniteData, QueryKey } from "@tanstack/react-query";
 import api from "../api/axios";
 import type { LayoutContextType } from "../components/MainLayout";
 
@@ -21,30 +23,64 @@ interface LinkItem {
 
 const Links = () => {
   const { refreshTrigger } = useOutletContext<LayoutContextType>();
-  const [links, setLinks] = useState<LinkItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const observerTarget = useRef<HTMLDivElement>(null);
 
-  const fetchLinks = async () => {
-    try {
-      const { data } = await api.get("/links");
-      setLinks(data);
-    } catch (err) {
-      console.error("Failed to fetch links:", err);
-    } finally {
-      setIsLoading(false);
-    }
+  const fetchLinksPage = async ({ pageParam }: { pageParam: unknown }): Promise<LinkItem[]> => {
+    const page = pageParam as number;
+    const { data } = await api.get(`/links?page=${page}&limit=20`);
+    return data;
   };
 
+  const {
+    data,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    refetch,
+  } = useInfiniteQuery<LinkItem[], Error, InfiniteData<LinkItem[]>, QueryKey, number>({
+    queryKey: ["links"],
+    queryFn: fetchLinksPage,
+    getNextPageParam: (lastPage, allPages) => {
+      return lastPage.length === 20 ? allPages.length + 1 : undefined;
+    },
+    initialPageParam: 1,
+  });
+
+  const handleObserver = useCallback(
+    (entries: IntersectionObserverEntry[]) => {
+      const [target] = entries;
+      if (target.isIntersecting && hasNextPage && !isFetchingNextPage) {
+        fetchNextPage();
+      }
+    },
+    [fetchNextPage, hasNextPage, isFetchingNextPage]
+  );
+
   useEffect(() => {
-    fetchLinks();
-  }, [refreshTrigger]);
+    const element = observerTarget.current;
+    if (!element) return;
+
+    const observer = new IntersectionObserver(handleObserver, {
+      threshold: 0.1,
+    });
+
+    observer.observe(element);
+    return () => observer.unobserve(element);
+  }, [handleObserver]);
+
+  useEffect(() => {
+    refetch();
+  }, [refreshTrigger, refetch]);
 
   const onDelete = async (id: number) => {
     if (!confirm("Delete this link?")) return;
     try {
       await api.delete(`/links/${id}`);
-      fetchLinks();
-    } catch (err) {
+      queryClient.invalidateQueries({ queryKey: ["links"] });
+    } catch {
       alert("Delete failed");
     }
   };
@@ -52,11 +88,13 @@ const Links = () => {
   const onRemoveTag = async (linkId: number, tagName: string) => {
     try {
       await api.delete(`/links/${linkId}/tags/${tagName}`);
-      fetchLinks();
-    } catch (err) {
+      queryClient.invalidateQueries({ queryKey: ["links"] });
+    } catch {
       alert("Failed to remove tag");
     }
   };
+
+  const links = data?.pages.flat() || [];
 
   return (
     <>
@@ -72,9 +110,13 @@ const Links = () => {
           <div className="flex justify-center py-20">
             <Loader2 size={32} className="animate-spin text-zinc-200" />
           </div>
+        ) : error ? (
+          <div className="p-8 text-center text-red-500">
+            Failed to load links.
+          </div>
         ) : links.length > 0 ? (
           <div className="divide-y divide-zinc-100">
-            {links.map((item) => (
+            {links.map((item: LinkItem) => (
               <div
                 key={item.id}
                 className="flex flex-col sm:flex-row items-start justify-between gap-4 px-4 lg:px-8 py-6 hover:bg-zinc-50 transition-colors group"
@@ -106,7 +148,7 @@ const Links = () => {
 
                   <div className="flex flex-wrap gap-2 mt-2">
                     {item.tags ? (
-                      item.tags.split(",").map((tag, idx) => (
+                      item.tags.split(",").map((tag: string, idx: number) => (
                         <span
                           key={idx}
                           className="flex items-center gap-1.5 bg-zinc-100 text-zinc-700 px-3 py-1 rounded-md text-xs font-medium border border-zinc-200"
@@ -138,6 +180,13 @@ const Links = () => {
                 </div>
               </div>
             ))}
+
+            {/* Infinite Scroll Trigger */}
+            <div ref={observerTarget} className="h-10 flex justify-center items-center">
+              {isFetchingNextPage && (
+                <Loader2 size={24} className="animate-spin text-zinc-300" />
+              )}
+            </div>
           </div>
         ) : (
           <div className="h-full flex flex-col items-center justify-center text-zinc-400 p-8 text-center">
