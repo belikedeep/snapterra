@@ -3,6 +3,10 @@ import { query } from "../../config/db";
 import type { AuthRequest } from "../../middleware/auth.middleware";
 
 export const getScreenshots = async (req: AuthRequest, res: Response) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 20;
+  const offset = (page - 1) * limit;
+
   try {
     const result = await query(
       `SELECT s.*, STRING_AGG(t.name, ',') as tags 
@@ -11,8 +15,9 @@ export const getScreenshots = async (req: AuthRequest, res: Response) => {
        LEFT JOIN tags t ON st.tag_id = t.id
        WHERE s.user_id = $1 
        GROUP BY s.id
-       ORDER BY s.created_at DESC`,
-      [req.userId],
+       ORDER BY s.created_at DESC
+       LIMIT $2 OFFSET $3`,
+      [req.userId, limit, offset],
     );
     res.json(result.rows);
   } catch (error) {

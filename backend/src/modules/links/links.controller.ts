@@ -4,6 +4,10 @@ import type { AuthRequest } from "../../middleware/auth.middleware";
 
 // Get Links
 export const getLinks = async (req: AuthRequest, res: Response) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 20;
+  const offset = (page - 1) * limit;
+
   try {
     const result = await query(
       `SELECT l.*, STRING_AGG(t.name, ',') as tags 
@@ -12,8 +16,9 @@ export const getLinks = async (req: AuthRequest, res: Response) => {
        LEFT JOIN tags t ON lt.tag_id = t.id
        WHERE l.user_id = $1 
        GROUP BY l.id
-       ORDER BY l.created_at DESC`,
-      [req.userId],
+       ORDER BY l.created_at DESC
+       LIMIT $2 OFFSET $3`,
+      [req.userId, limit, offset],
     );
     res.json(result.rows);
   } catch (error) {
