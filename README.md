@@ -1,34 +1,36 @@
-# Snapterra 🚀
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Snapterra is a unified dashboard for managing your visual inspiration and web resources. It combines a high-speed screenshot gallery with a clean link-saving system, all tied together by a shared tagging ecosystem.
+## Getting Started
 
-## ✨ Key Features
+First, run the development server:
 
-- **📸 Visuals & Links**: Manage both image uploads (via UploadThing) and website URLs.
-- **🏷️ Normalized Tags**: Powerful many-to-many tagging shared across your entire collection.
-- **🎨 Modular Sidebar**: Effortless navigation and content creation within a single, dynamic component.
-- **📱 Responsive Layout**: Nested routing architecture ensures a stable and professional UI.
-- **👁️ Instant Preview**: View high-resolution screenshots instantly in a premium modal viewer.
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-## 🛠️ Technology Stack
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-| Frontend | Backend | Hosting/Storage |
-| :--- | :--- | :--- |
-| React (Vite) | Express & Bun | UploadThing (Images) |
-| TailwindCSS | PostgreSQL | JWT (Auth) |
-| React Router | Bcrypt | Lucide Icon Library |
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## ⚙️ Setup & Installation
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-### Backend Setup
-1.  Navigate to `backend/` and install dependencies: `bun install`.
-2.  Set up your `.env` file with `DATABASE_URL`, `UPLOADTHING_TOKEN`, `JWT_SECRET`, and `ADMIN` credentials.
-3.  Start the server: `bun dev`.
+## Learn More
 
-### Frontend Setup
-1.  Navigate to `frontend/` and install dependencies: `bun install`.
-2.  Start the development server: `bun dev`.
-3.  Visit `http://localhost:5173` to start managing your resources!
+To learn more about Next.js, take a look at the following resources:
 
----
-*Organize your inspiration with Snapterra.*
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
