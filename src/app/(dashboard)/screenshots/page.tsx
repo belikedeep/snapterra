@@ -9,6 +9,7 @@ import {
   Screenshot,
 } from "@/hooks/useScreenshots";
 import ImageModal from "@/components/ImageModal";
+import Image from "next/image";
 
 export default function ScreenshotsPage() {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -32,7 +33,7 @@ export default function ScreenshotsPage() {
         fetchNextPage();
       }
     },
-    [fetchNextPage, hasNextPage, isFetchingNextPage]
+    [fetchNextPage, hasNextPage, isFetchingNextPage],
   );
 
   useEffect(() => {
@@ -88,7 +89,9 @@ export default function ScreenshotsPage() {
                     className="w-full sm:w-24 h-48 sm:h-16 shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
                     onClick={() => setPreviewImage(item.filename)}
                   >
-                    <img
+                    <Image
+                      height={16}
+                      width={32}
                       src={item.filename}
                       alt={item.title}
                       className="w-full h-full object-cover rounded border border-zinc-200"
@@ -137,8 +140,11 @@ export default function ScreenshotsPage() {
                 </div>
               </div>
             ))}
-            
-            <div ref={observerTarget} className="h-10 flex justify-center items-center">
+
+            <div
+              ref={observerTarget}
+              className="h-10 flex justify-center items-center"
+            >
               {isFetchingNextPage && (
                 <Loader2 size={24} className="animate-spin text-zinc-300" />
               )}

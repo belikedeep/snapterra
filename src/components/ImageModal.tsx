@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
+import Image from "next/image";
 
 interface ImageModalProps {
   imageUrl: string | null;
@@ -21,12 +22,18 @@ const ImageModal = ({ imageUrl, onClose }: ImageModalProps) => {
       >
         <X size={32} />
       </button>
-      <img
-        src={imageUrl}
-        alt="Preview"
-        className="max-w-7xl max-h-[90vh] object-contain rounded-lg shadow-2xl"
+      <div
+        className="relative w-full h-full max-w-7xl max-h-[90vh]"
         onClick={(e) => e.stopPropagation()}
-      />
+      >
+        <Image
+          src={imageUrl}
+          alt="Preview"
+          fill
+          className="object-contain rounded-lg shadow-2xl"
+          priority
+        />
+      </div>
     </div>
   );
 };
