@@ -22,8 +22,9 @@ export default function LoginPage() {
       await api.post("/auth/login", { email, password });
       router.push("/tasks");
       router.refresh();
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Login failed");
+    } catch (err: unknown) {
+      const errorData = err as { response?: { data?: { message?: string } } };
+      setError(errorData.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }

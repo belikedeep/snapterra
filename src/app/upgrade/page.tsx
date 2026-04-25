@@ -6,7 +6,7 @@ import { useState } from "react";
 import api from "@/lib/axios";
 
 export default function UpgradePage() {
-  const { data: user, isLoading: userLoading } = useUserQuery();
+  const { isLoading: userLoading } = useUserQuery();
   const [upgrading, setUpgrading] = useState(false);
   const [error, setError] = useState("");
 
@@ -25,12 +25,10 @@ export default function UpgradePage() {
       } else {
         throw new Error("No checkout URL returned");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Upgrade error:", err);
-      setError(
-        err.response?.data?.error ||
-          "Failed to initiate checkout. Please try again.",
-      );
+      const errorMessage = err instanceof Error ? err.message : "Failed to initiate checkout. Please try again.";
+      setError(errorMessage);
       setUpgrading(false);
     }
   };

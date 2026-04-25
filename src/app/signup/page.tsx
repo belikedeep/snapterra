@@ -22,8 +22,9 @@ export default function SignupPage() {
       await api.post("/auth/signup", { email, password });
       router.push("/upgrade");
       router.refresh();
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Signup failed");
+    } catch (err: unknown) {
+      const errorData = err as { response?: { data?: { error?: string } } };
+      setError(errorData.response?.data?.error || "Signup failed");
     } finally {
       setLoading(false);
     }
