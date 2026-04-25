@@ -1,61 +1,30 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { CheckSquare, Square, Trash2, Loader2, Clock } from "lucide-react";
-import api from "@/lib/axios";
-import { useLayoutContext } from "../layout";
-
-interface Task {
-  id: number;
-  title: string;
-  description: string;
-  status: "todo" | "done";
-  created_at: string;
-}
+import {
+  useTasksQuery,
+  useUpdateTaskStatusMutation,
+  useDeleteTaskMutation,
+  Task,
+} from "@/hooks/useTasks";
 
 export default function TasksPage() {
-  const { refreshTrigger } = useLayoutContext();
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: tasks = [], isLoading } = useTasksQuery();
+  const updateStatusMutation = useUpdateTaskStatusMutation();
+  const deleteMutation = useDeleteTaskMutation();
   const [filter, setFilter] = useState<"all" | "todo" | "done">("todo");
 
-  const fetchTasks = async () => {
-    try {
-      const { data } = await api.get("/tasks");
-      setTasks(data);
-    } catch (err) {
-      console.error("Failed to fetch tasks:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    const timeoutId = setTimeout(fetchTasks, 0);
-    return () => clearTimeout(timeoutId);
-  }, [refreshTrigger]);
-
   const toggleStatus = async (task: Task) => {
-    const newStatus = task.status === "todo" ? "done" : "todo";
-    try {
-      setTasks((prev) =>
-        prev.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t)),
-      );
-      await api.patch(`/tasks/${task.id}/status`, { status: newStatus });
-    } catch (err) {
-      alert("Failed to update task");
-      fetchTasks(); // Rollback
-    }
+    updateStatusMutation.mutate({
+      id: task.id,
+      status: task.status === "todo" ? "done" : "todo",
+    });
   };
 
   const onDelete = async (id: number) => {
     if (!confirm("Delete this task?")) return;
-    try {
-      await api.delete(`/tasks/${id}`);
-      setTasks((prev) => prev.filter((t) => t.id !== id));
-    } catch (err) {
-      alert("Delete failed");
-    }
+    deleteMutation.mutate(id);
   };
 
   const filteredTasks = tasks.filter((t) => {

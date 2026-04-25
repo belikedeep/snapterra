@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import { useUploadThing } from "@/lib/uploadthing";
 import api from "@/lib/axios";
+import { useCreateTaskMutation } from "@/hooks/useTasks";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface SidebarProps {
   onSuccess: () => void;
@@ -30,6 +32,8 @@ const Sidebar = ({ onSuccess, onClose }: SidebarProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const createTaskMutation = useCreateTaskMutation();
+  const queryClient = useQueryClient();
 
   const [activeTab, setActiveTab] = useState<"screenshot" | "link" | "task">(
     "screenshot",
@@ -44,6 +48,7 @@ const Sidebar = ({ onSuccess, onClose }: SidebarProps) => {
   const { startUpload, isUploading } = useUploadThing("screenshotUploader", {
     onClientUploadComplete: async () => {
       resetForm();
+      queryClient.invalidateQueries({ queryKey: ["screenshots"] });
       onSuccess();
     },
     onUploadError: (e) => alert(e.message),
@@ -82,6 +87,7 @@ const Sidebar = ({ onSuccess, onClose }: SidebarProps) => {
       try {
         await api.post("/links", { title, url, tags });
         resetForm();
+        queryClient.invalidateQueries({ queryKey: ["links"] });
         onSuccess();
       } catch (err) {
         alert("Failed to save link");
@@ -90,16 +96,18 @@ const Sidebar = ({ onSuccess, onClose }: SidebarProps) => {
       }
     } else {
       if (!title) return;
-      setIsSaving(true);
-      try {
-        await api.post("/tasks", { title, description });
-        resetForm();
-        onSuccess();
-      } catch (err) {
-        alert("Failed to save task");
-      } finally {
-        setIsSaving(false);
-      }
+      createTaskMutation.mutate(
+        { title, description },
+        {
+          onSuccess: () => {
+            resetForm();
+            onSuccess();
+          },
+          onError: () => {
+            alert("Failed to save task");
+          },
+        },
+      );
     }
   };
 

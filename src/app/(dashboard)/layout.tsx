@@ -4,18 +4,13 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import { Menu } from "lucide-react";
-import { createContext, useContext } from "react";
-
-const LayoutContext = createContext({ refreshTrigger: 0 });
-
-export const useLayoutContext = () => useContext(LayoutContext);
+import QueryProvider from "@/components/providers/QueryProvider";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
@@ -37,14 +32,13 @@ export default function DashboardLayout({
   }, [router]);
 
   const handleSuccess = () => {
-    setRefreshTrigger((prev) => prev + 1);
     setIsSidebarOpen(false);
   };
 
   if (!isAuthenticated) return null;
 
   return (
-    <LayoutContext.Provider value={{ refreshTrigger }}>
+    <QueryProvider>
       <div className="flex h-screen overflow-hidden bg-white">
         {/* Mobile Overlay */}
         {isSidebarOpen && (
@@ -84,6 +78,6 @@ export default function DashboardLayout({
           </section>
         </main>
       </div>
-    </LayoutContext.Provider>
+    </QueryProvider>
   );
 }

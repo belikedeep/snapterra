@@ -9,29 +9,17 @@ import {
   Globe,
   ExternalLink,
 } from "lucide-react";
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
-import type { InfiniteData, QueryKey } from "@tanstack/react-query";
-import api from "@/lib/axios";
-import { useLayoutContext } from "../layout";
-
-interface LinkItem {
-  id: number;
-  url: string;
-  title: string;
-  tags?: string;
-  created_at: string;
-}
+import {
+  useLinksQuery,
+  useDeleteLinkMutation,
+  useRemoveLinkTagMutation,
+  LinkItem,
+} from "@/hooks/useLinks";
 
 export default function LinksPage() {
-  const { refreshTrigger } = useLayoutContext();
-  const queryClient = useQueryClient();
   const observerTarget = useRef<HTMLDivElement>(null);
-
-  const fetchLinksPage = async ({ pageParam }: { pageParam: unknown }): Promise<LinkItem[]> => {
-    const page = pageParam as number;
-    const { data } = await api.get(`/links?page=${page}&limit=20`);
-    return data;
-  };
+  const deleteMutation = useDeleteLinkMutation();
+  const removeTagMutation = useRemoveLinkTagMutation();
 
   const {
     data,
@@ -40,15 +28,7 @@ export default function LinksPage() {
     hasNextPage,
     isFetchingNextPage,
     isLoading,
-    refetch,
-  } = useInfiniteQuery<LinkItem[], Error, InfiniteData<LinkItem[]>, QueryKey, number>({
-    queryKey: ["links"],
-    queryFn: fetchLinksPage,
-    getNextPageParam: (lastPage, allPages) => {
-      return lastPage.length === 20 ? allPages.length + 1 : undefined;
-    },
-    initialPageParam: 1,
-  });
+  } = useLinksQuery();
 
   const handleObserver = useCallback(
     (entries: IntersectionObserverEntry[]) => {
@@ -72,27 +52,13 @@ export default function LinksPage() {
     return () => observer.unobserve(element);
   }, [handleObserver]);
 
-  useEffect(() => {
-    refetch();
-  }, [refreshTrigger, refetch]);
-
   const onDelete = async (id: number) => {
     if (!confirm("Delete this link?")) return;
-    try {
-      await api.delete(`/links/${id}`);
-      queryClient.invalidateQueries({ queryKey: ["links"] });
-    } catch {
-      alert("Delete failed");
-    }
+    deleteMutation.mutate(id);
   };
 
   const onRemoveTag = async (linkId: number, tagName: string) => {
-    try {
-      await api.delete(`/links/${linkId}/tags/${tagName}`);
-      queryClient.invalidateQueries({ queryKey: ["links"] });
-    } catch {
-      alert("Failed to remove tag");
-    }
+    removeTagMutation.mutate({ linkId, tagName });
   };
 
   const links = data?.pages.flat() || [];

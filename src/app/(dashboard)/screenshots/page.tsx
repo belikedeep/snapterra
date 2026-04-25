@@ -2,31 +2,19 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Image as ImageIcon, Loader2, Trash2, X } from "lucide-react";
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
-import type { InfiniteData, QueryKey } from "@tanstack/react-query";
-import api from "@/lib/axios";
+import {
+  useScreenshotsQuery,
+  useDeleteScreenshotMutation,
+  useRemoveScreenshotTagMutation,
+  Screenshot,
+} from "@/hooks/useScreenshots";
 import ImageModal from "@/components/ImageModal";
-import { useLayoutContext } from "../layout";
-
-interface Screenshot {
-  id: number;
-  filename: string;
-  title: string;
-  tags?: string;
-  created_at: string;
-}
 
 export default function ScreenshotsPage() {
-  const { refreshTrigger } = useLayoutContext();
-  const queryClient = useQueryClient();
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const observerTarget = useRef<HTMLDivElement>(null);
-
-  const fetchScreenshotsPage = async ({ pageParam }: { pageParam: unknown }): Promise<Screenshot[]> => {
-    const page = pageParam as number;
-    const { data } = await api.get(`/screenshots?page=${page}&limit=20`);
-    return data;
-  };
+  const deleteMutation = useDeleteScreenshotMutation();
+  const removeTagMutation = useRemoveScreenshotTagMutation();
 
   const {
     data,
@@ -35,15 +23,7 @@ export default function ScreenshotsPage() {
     hasNextPage,
     isFetchingNextPage,
     isLoading,
-    refetch,
-  } = useInfiniteQuery<Screenshot[], Error, InfiniteData<Screenshot[]>, QueryKey, number>({
-    queryKey: ["screenshots"],
-    queryFn: fetchScreenshotsPage,
-    getNextPageParam: (lastPage, allPages) => {
-      return lastPage.length === 20 ? allPages.length + 1 : undefined;
-    },
-    initialPageParam: 1,
-  });
+  } = useScreenshotsQuery();
 
   const handleObserver = useCallback(
     (entries: IntersectionObserverEntry[]) => {
@@ -67,27 +47,13 @@ export default function ScreenshotsPage() {
     return () => observer.unobserve(element);
   }, [handleObserver]);
 
-  useEffect(() => {
-    refetch();
-  }, [refreshTrigger, refetch]);
-
   const onDelete = async (id: number) => {
     if (!confirm("Delete this screenshot?")) return;
-    try {
-      await api.delete(`/screenshots/${id}`);
-      queryClient.invalidateQueries({ queryKey: ["screenshots"] });
-    } catch {
-      alert("Delete failed");
-    }
+    deleteMutation.mutate(id);
   };
 
   const onRemoveTag = async (screenshotId: number, tagName: string) => {
-    try {
-      await api.delete(`/screenshots/${screenshotId}/tags/${tagName}`);
-      queryClient.invalidateQueries({ queryKey: ["screenshots"] });
-    } catch {
-      alert("Failed to remove tag");
-    }
+    removeTagMutation.mutate({ screenshotId, tagName });
   };
 
   const screenshots = data?.pages.flat() || [];
