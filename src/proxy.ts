@@ -12,13 +12,14 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // 2. If user IS logged in and trying to access Login/Signup -> Redirect to Dashboard
+  // 2. If user IS logged in and trying to access Login/Signup -> Redirect to Mission Control
   if (token && isAuthPage) {
-    return NextResponse.redirect(new URL("/tasks", request.url));
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   // 3. Security Gate: Fetch is_pro status for dashboard and upgrade routes
   const isDashboardRoute =
+    pathname === "/" ||
     pathname.startsWith("/tasks") ||
     pathname.startsWith("/links") ||
     pathname.startsWith("/screenshots");
@@ -53,9 +54,9 @@ export async function proxy(request: NextRequest) {
         // If IS pro and trying to access /upgrade, redirect to dashboard
         if (user.is_pro && isUpgradePage) {
           console.log(
-            `[Proxy] User ${user.id} is Pro. Redirecting from /upgrade to /tasks`,
+            `[Proxy] User ${user.id} is Pro. Redirecting from /upgrade to /`,
           );
-          return NextResponse.redirect(new URL("/tasks", request.url));
+          return NextResponse.redirect(new URL("/", request.url));
         }
       }
     } catch (error) {
@@ -71,6 +72,7 @@ export default proxy;
 export const config = {
   // Protect all dashboard routes, auth pages, and the upgrade page
   matcher: [
+    "/",
     "/tasks/:path*",
     "/links/:path*",
     "/screenshots/:path*",

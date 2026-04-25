@@ -145,6 +145,18 @@ const Sidebar = ({ onSuccess, onClose }: SidebarProps) => {
         {/* Navigation */}
         <nav className="p-4 space-y-1">
           <Link
+            href="/"
+            onClick={() => onClose?.()}
+            className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+              pathname === "/"
+                ? "bg-black text-white dark:bg-white dark:text-black"
+                : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-black dark:hover:text-white"
+            }`}
+          >
+            <LayoutGrid size={18} />
+            Dashboard
+          </Link>
+          <Link
             href="/screenshots"
             onClick={() => onClose?.()}
             className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
