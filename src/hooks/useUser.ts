@@ -29,7 +29,7 @@ export const useLogoutMutation = () => {
     },
     onSuccess: () => {
       queryClient.setQueryData(["user"], null);
-      window.location.href = "/login";
+      window.location.href = "/";
     },
   });
 };

@@ -17,6 +17,10 @@ import {
   CheckSquare,
   FileText,
   X,
+  User as UserIcon,
+  Sun,
+  Moon,
+  Monitor,
 } from "lucide-react";
 import { useUploadThing } from "@/lib/uploadthing";
 import api from "@/lib/axios";
@@ -25,7 +29,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useUserQuery, useLogoutMutation } from "@/hooks/useUser";
 import { toast } from "sonner";
 import { useTheme } from "next-themes";
-import { Sun, Moon, Monitor } from "lucide-react";
+
 import { useEffect, useState as useReactState } from "react";
 
 interface SidebarProps {
@@ -146,18 +150,7 @@ const Sidebar = ({ onSuccess, onClose }: SidebarProps) => {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Navigation */}
         <nav className="p-4 space-y-1">
-          <Link
-            href="/"
-            onClick={() => onClose?.()}
-            className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-              pathname === "/"
-                ? "bg-black text-white dark:bg-white dark:text-black"
-                : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-black dark:hover:text-white"
-            }`}
-          >
-            <LayoutGrid size={18} />
-            Dashboard
-          </Link>
+
           <Link
             href="/screenshots"
             onClick={() => onClose?.()}
@@ -397,6 +390,18 @@ const Sidebar = ({ onSuccess, onClose }: SidebarProps) => {
             </p>
           </div>
         )}
+        <Link
+          href="/settings"
+          onClick={() => onClose?.()}
+          className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+            pathname === "/settings"
+              ? "bg-black text-white dark:bg-white dark:text-black"
+              : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-black dark:hover:text-white"
+          }`}
+        >
+          <UserIcon size={18} />
+          <span className="font-medium">Account Settings</span>
+        </Link>
         <button
           onClick={handleLogout}
           disabled={logoutMutation.isPending}

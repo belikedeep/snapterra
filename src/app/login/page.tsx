@@ -20,7 +20,7 @@ export default function LoginPage() {
 
     try {
       await api.post("/auth/login", { email, password });
-      router.push("/");
+      router.push("/settings");
       router.refresh();
     } catch (err: unknown) {
       const errorData = err as { response?: { data?: { message?: string } } };

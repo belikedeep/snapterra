@@ -27,7 +27,10 @@ export default function UpgradePage() {
       }
     } catch (err: unknown) {
       console.error("Upgrade error:", err);
-      const errorMessage = err instanceof Error ? err.message : "Failed to initiate checkout. Please try again.";
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Failed to initiate checkout. Please try again.";
       setError(errorMessage);
       setUpgrading(false);
     }
@@ -74,7 +77,7 @@ export default function UpgradePage() {
             </div>
 
             <div className="mb-8">
-              <span className="text-5xl font-bold text-black">$10</span>
+              <span className="text-5xl font-bold text-black">$6.9</span>
               <span className="text-zinc-500 ml-2">/month</span>
             </div>
 
@@ -109,7 +112,7 @@ export default function UpgradePage() {
                   Preparing Checkout...
                 </>
               ) : (
-                "Subscribe for $10/mo"
+                "Subscribe for $6.9/mo"
               )}
             </button>
 
