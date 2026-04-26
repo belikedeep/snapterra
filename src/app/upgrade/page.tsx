@@ -52,7 +52,7 @@ export default function UpgradePage() {
             Level Up Your Workflow
           </h1>
           <p className="text-zinc-500 text-lg">
-            Get unlimited access to all premium features with Snapterra Pro.
+            Get 10GB of premium storage and unlimited features with Snapterra Pro.
           </p>
         </div>
 
@@ -83,8 +83,8 @@ export default function UpgradePage() {
 
             <ul className="space-y-4 mb-10">
               {[
-                "Unlimited Links & Storage",
-                "Unlimited Screenshots",
+                "10GB High-Performance Storage",
+                "Unlimited Screenshots & Links",
                 "Priority Task Management",
                 "Custom Tags & Organization",
                 "Priority Email Support",
