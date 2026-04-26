@@ -1,45 +1,51 @@
 # Snapterra
 
-Snapterra is a **self-hosted**, unified Next.js application designed to be your personal dashboard for managing screenshots, links, and tasks. It combines a powerful PostgreSQL backend with a modern React frontend, all within the Next.js App Router.
+Snapterra is a **SaaS-ready**, unified dashboard designed for modern workflows. Manage your screenshots, links, and tasks with ease, powered by a premium PostgreSQL backend and a high-performance Next.js App Router frontend.
 
-> [!NOTE]
-> Snapterra is built for developers and power users who want complete control over their data. By self-hosting, you ensure your screenshots and links remain private and under your own management.
+## 🚀 Features
 
-## Features
+- **Advanced Screenshot Gallery**: Upload, tag, and organize screenshots. Powered by **Uploadthing** for reliable file handling.
+- **Smart Link Manager**: Save important URLs with custom tags for quick retrieval.
+- **Prioritized Task Tracker**: Stay on top of your work with status filtering and optimistic updates.
+- **Modern Auth System**: Secure JWT-based authentication with session management and user roles.
+- **Beautiful UI/UX**: Built with **Tailwind CSS 4** and **Framer Motion** for a smooth, glassmorphic experience.
 
-- **Screenshots Gallery**: Upload and manage screenshots with automated tag management via Uploadthing.
-- **Link Manager**: Save and organize important URLs with tags.
-- **Task Tracker**: Manage your daily tasks with status filtering and optimistic updates.
-- **Secure Auth**: JWT-based authentication with case-insensitive login and input validation.
+## 🛠 Tech Stack
 
-## Tech Stack
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router)
+- **Frontend**: [React 19](https://reactjs.org/), [Tailwind CSS 4](https://tailwindcss.com/)
+- **Database**: [PostgreSQL](https://neon.tech/) (Neon.tech)
+- **Migrations**: [Knex.js](https://knexjs.org/)
+- **Billing**: [Dodo Payments](https://dodopayments.com/)
+- **Storage**: [Uploadthing](https://uploadthing.com/)
+- **State**: [TanStack Query 5](https://tanstack.com/query)
+- **Animations**: [Framer Motion](https://www.framer.com/motion/)
 
-- **Framework**: Next.js 16 (App Router)
-- **Database**: PostgreSQL (Neon.tech)
-- **File Storage**: Uploadthing
-- **State Management**: TanStack Query (React Query)
-- **Styling**: Tailwind CSS 4
-- **Runtime**: Bun
-
-## Getting Started
+## 🚦 Getting Started
 
 ### 1. Prerequisites
 
-- [Bun](https://bun.sh/) installed on your machine.
-- A PostgreSQL database (e.g., [Neon.tech](https://neon.tech)).
-- An [Uploadthing](https://uploadthing.com/) account for file storage.
+- [Bun](https://bun.sh/) (Recommended) or Node.js 20+
+- PostgreSQL Database (e.g., [Neon.tech](https://neon.tech))
+- [Uploadthing](https://uploadthing.com/) Account
+- [Dodo Payments](https://dodopayments.com/) Account
 
 ### 2. Environment Setup
 
-Create a `.env.local` file in the root directory and add the following variables:
+Copy `.env.example` to `.env.local` and fill in your credentials:
 
 ```env
 DATABASE_URL=your_postgresql_url
 JWT_SECRET=your_jwt_secret
-UPLOADTHING_TOKEN=your_uploadthing_token
-UPLOADTHING_SECRET=your_uploadthing_secret
-ADMIN_EMAIL=your_admin_email
-ADMIN_PASSWORD=your_admin_password
+
+# Dodo Payments
+DODO_PAYMENTS_API_KEY=your_api_key
+DODO_WEBHOOK_SECRET=your_webhook_secret
+NEXT_PUBLIC_DODO_PRODUCT_ID=your_pro_product_id
+
+# File Storage (Uploadthing)
+UPLOADTHING_TOKEN=your_token
+UPLOADTHING_SECRET=your_secret
 ```
 
 ### 3. Installation
@@ -48,35 +54,30 @@ ADMIN_PASSWORD=your_admin_password
 bun install
 ```
 
-### 4. Database Setup
+### 4. Database Migrations
 
-Ensure your database has the following tables: `users`, `screenshots`, `links`, `tasks`, and `tags`.
-
-### 5. Running with Docker
-
-If you prefer using Docker, you can use the provided `docker-compose.yml` file.
-
-1. Ensure your `.env.local` is set up.
-2. Build and run the containers:
+Run migrations to set up your schema:
 
 ```bash
-docker compose up --build
+bun x knex migrate:latest
 ```
 
-The app will be available at [http://localhost:3000](http://localhost:3000).
-
-### 6. Running Locally (without Docker)
+### 5. Development
 
 ```bash
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser.
+Open [http://localhost:3000](http://localhost:3000) to see the magic.
 
-## Deployment
+## 🐳 Docker Support
 
-The easiest way to deploy is via [Vercel](https://vercel.com). Ensure you add all environment variables to your Vercel project settings.
+You can also run Snapterra using Docker:
 
-## License
+```bash
+docker compose up --build
+```
 
-MIT
+## 📄 License
+
+MIT © [Deepak Mardi](https://github.com/iamdeepakmardi)

@@ -1,6 +1,6 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
-import { getUserIdFromRequest } from "@/lib/auth";
-import { query } from "@/lib/db";
+import { getAuthenticatedUser } from "@/lib/auth";
+import { query, getClient } from "@/lib/db";
 import { z } from "zod";
 
 const f = createUploadthing();
@@ -19,55 +19,66 @@ export const ourFileRouter = {
       }),
     )
     .middleware(async ({ req, input }) => {
-      const userId = await getUserIdFromRequest();
-      if (!userId) throw new Error("Unauthorized");
+      const user = await getAuthenticatedUser();
+      if (!user) throw new Error("Unauthorized");
+      if (!user.is_pro) throw new Error("Subscription required");
 
       return {
-        userId: Number(userId),
+        userId: Number(user.id),
         title: input.title,
         tags: input.tags,
       };
     })
     .onUploadComplete(async ({ metadata, file }) => {
+      const client = await getClient();
       try {
+        await client.query("BEGIN");
         const finalTitle = metadata.title || file.name;
-        
-        const res = await query(
+
+        const res = await client.query(
           "INSERT INTO screenshots (user_id, filename, title) VALUES ($1, $2, $3) RETURNING id",
           [metadata.userId, file.ufsUrl, finalTitle],
         );
+        const screenshotId = res.rows[0].id;
 
         // Handle tags if provided
         if (metadata.tags && typeof metadata.tags === "string") {
-            const tagList = metadata.tags
-              .split(",")
-              .map((t: string) => t.trim().toLowerCase())
-              .filter(Boolean);
-      
-            for (const tagName of tagList) {
-              const tagRes = await query("SELECT id FROM tags WHERE name = $1", [tagName]);
-              let tagId;
-      
-              if (tagRes.rowCount === 0) {
-                const newTagRes = await query(
-                  "INSERT INTO tags (name) VALUES ($1) RETURNING id",
-                  [tagName],
-                );
-                tagId = newTagRes.rows[0].id;
-              } else {
-                tagId = tagRes.rows[0].id;
-              }
-      
-              await query(
-                "INSERT INTO screenshot_tags (screenshot_id, tag_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
-                [res.rows[0].id, tagId],
-              );
-            }
-          }
+          const tagList = metadata.tags
+            .split(",")
+            .map((t: string) => t.trim().toLowerCase())
+            .filter(Boolean);
 
-        console.log("DATABASE SUCCESS: Saved row ID:", res.rows[0].id);
+          for (const tagName of tagList) {
+            const tagRes = await client.query(
+              "SELECT id FROM tags WHERE name = $1",
+              [tagName],
+            );
+            let tagId;
+
+            if (tagRes.rowCount === 0) {
+              const newTagRes = await client.query(
+                "INSERT INTO tags (name) VALUES ($1) RETURNING id",
+                [tagName],
+              );
+              tagId = newTagRes.rows[0].id;
+            } else {
+              tagId = tagRes.rows[0].id;
+            }
+
+            await client.query(
+              "INSERT INTO screenshot_tags (screenshot_id, tag_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+              [screenshotId, tagId],
+            );
+          }
+        }
+
+        await client.query("COMMIT");
+        console.log("DATABASE SUCCESS: Saved row ID:", screenshotId);
       } catch (error) {
+        await client.query("ROLLBACK");
         console.error("DATABASE ERROR in onUploadComplete:", error);
+      } finally {
+        client.release();
       }
     }),
 } satisfies FileRouter;

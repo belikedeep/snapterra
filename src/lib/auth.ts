@@ -39,6 +39,19 @@ export const getUserIdFromRequest = async () => {
   return null;
 };
 
+export const getAuthenticatedUser = async () => {
+  const userId = await getUserIdFromRequest();
+  if (!userId) return null;
+
+  const { query } = await import("./db");
+  const result = await query(
+    "SELECT id, email, is_pro, subscription_id FROM users WHERE id = $1",
+    [userId],
+  );
+
+  return result.rows[0] || null;
+};
+
 export const createToken = (userId: number) => {
   return jwt.sign({ id: userId }, getSecret(), { expiresIn: "30d" });
 };

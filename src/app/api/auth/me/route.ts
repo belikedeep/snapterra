@@ -11,7 +11,7 @@ export async function GET() {
 
   try {
     const result = await query(
-      "SELECT id, email, is_pro, storage_used, subscription_id FROM users WHERE id = $1",
+      "SELECT id, email, is_pro, storage_used, subscription_id, cancel_at_period_end FROM users WHERE id = $1",
       [userId],
     );
 
@@ -22,6 +22,9 @@ export async function GET() {
     return NextResponse.json(result.rows[0]);
   } catch (error) {
     console.error("Auth Me Error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }

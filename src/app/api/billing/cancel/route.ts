@@ -121,7 +121,7 @@ export async function POST() {
       // but usually we want to keep it active until the end of the period.
       // status: 'cancelled' might be more direct.
       await dodo.subscriptions.update(subscriptionId, {
-        status: "cancelled",
+        cancel_at_next_billing_date: true,
       });
       console.log(
         `[Cancel Subscription] Successfully marked ${subscriptionId} as cancelled`,

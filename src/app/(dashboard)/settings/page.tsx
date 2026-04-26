@@ -19,8 +19,6 @@ export default function SettingsPage() {
   const { data: user } = useUserQuery();
   const queryClient = useQueryClient();
 
-
-
   const handleCancelSubscription = async () => {
     if (
       !confirm(
@@ -126,8 +124,14 @@ export default function SettingsPage() {
                     {user?.is_pro ? "$6.9/mo" : "Free"}
                   </h3>
                   {user?.is_pro && (
-                    <span className="px-2 py-0.5 bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400 rounded-full text-[10px] font-black uppercase tracking-widest">
-                      Active
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                        user?.cancel_at_period_end
+                          ? "bg-amber-100 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400"
+                          : "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400"
+                      }`}
+                    >
+                      {user?.cancel_at_period_end ? "Cancelling" : "Active"}
                     </span>
                   )}
                 </div>
@@ -135,7 +139,7 @@ export default function SettingsPage() {
 
               <div className="flex gap-3 mt-6">
                 {user?.is_pro ? (
-                  <>
+                  !user?.cancel_at_period_end ? (
                     <button
                       onClick={handleCancelSubscription}
                       className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-xl text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors text-sm font-bold"
@@ -143,7 +147,12 @@ export default function SettingsPage() {
                       <XCircle size={18} />
                       Cancel Subscription
                     </button>
-                  </>
+                  ) : (
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium italic">
+                      Your subscription will remain active until the end of the
+                      current billing period.
+                    </p>
+                  )
                 ) : (
                   <Link
                     href="/upgrade"
